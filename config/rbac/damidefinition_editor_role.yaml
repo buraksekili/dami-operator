@@ -1,0 +1,24 @@
+# permissions for end users to edit damidefinitions.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: damidefinition-editor-role
+rules:
+- apiGroups:
+  - damigroup.dami.io
+  resources:
+  - damidefinitions
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - damigroup.dami.io
+  resources:
+  - damidefinitions/status
+  verbs:
+  - get

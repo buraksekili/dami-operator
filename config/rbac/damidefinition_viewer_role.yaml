@@ -1,0 +1,20 @@
+# permissions for end users to view damidefinitions.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: damidefinition-viewer-role
+rules:
+- apiGroups:
+  - damigroup.dami.io
+  resources:
+  - damidefinitions
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - damigroup.dami.io
+  resources:
+  - damidefinitions/status
+  verbs:
+  - get

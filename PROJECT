@@ -1,0 +1,16 @@
+domain: dami.io
+layout:
+- go.kubebuilder.io/v3
+projectName: dami-operator
+repo: github.com/buraksekili/dami-operator
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: dami.io
+  group: damigroup
+  kind: DamiDefinition
+  path: github.com/buraksekili/dami-operator/api/v1alpha1
+  version: v1alpha1
+version: "3"

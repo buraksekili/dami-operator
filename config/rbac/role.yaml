@@ -1,0 +1,34 @@
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - damigroup.dami.io
+  resources:
+  - damidefinitions
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - damigroup.dami.io
+  resources:
+  - damidefinitions/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - damigroup.dami.io
+  resources:
+  - damidefinitions/status
+  verbs:
+  - get
+  - patch
+  - update

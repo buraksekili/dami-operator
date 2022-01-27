@@ -1,0 +1,6 @@
+apiVersion: damigroup.dami.io/v1alpha1
+kind: DamiDefinition
+metadata:
+  name: damidefinition-sample-01
+spec:
+  resp: "hello response YAML"

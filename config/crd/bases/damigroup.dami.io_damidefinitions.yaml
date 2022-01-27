@@ -1,0 +1,74 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.7.0
+  creationTimestamp: null
+  name: damidefinitions.damigroup.dami.io
+spec:
+  group: damigroup.dami.io
+  names:
+    kind: DamiDefinition
+    listKind: DamiDefinitionList
+    plural: damidefinitions
+    singular: damidefinition
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: DamiDefinition is the Schema for the damidefinitions API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: DamiDefinitionSpec defines the desired state of DamiDefinition
+            properties:
+              port:
+                default: 8001
+                description: Port specifies the port that dami server listens. Currently,
+                  it is ineffective.
+                format: int32
+                type: integer
+              resp:
+                description: Resp corresponds to response that dami api going to return.
+                  For example, if resp field of the DamiDefinition is "resp from k8s",
+                  dami api will return JSON response with 'document' field equals
+                  to given resp field, "resp from k8s".
+                maxLength: 64
+                minLength: 1
+                type: string
+            required:
+            - resp
+            type: object
+          status:
+            description: DamiDefinitionStatus defines the observed state of DamiDefinition
+            properties:
+              definition_id:
+                type: string
+            required:
+            - definition_id
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
