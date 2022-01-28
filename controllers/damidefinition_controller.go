@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -46,11 +47,11 @@ const damiDefinitionFinalizer = "damigroup.dami.io/finalizer"
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.10.0/pkg/reconcile
 func (r *DamiDefinitionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	l := log.FromContext(ctx)
+	fmt.Println("-------------\n")
 
 	l.Info("we started reconciling", "namespace", req.NamespacedName)
 	var damiDefinition damigroupv1alpha1.DamiDefinition
 	if err := r.Get(ctx, req.NamespacedName, &damiDefinition); err != nil {
-		l.Error(err, "failed to get damiDefinition", "key", req.NamespacedName)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 	l.Info("got dami definition", "meta", damiDefinition.Name, "spec", damiDefinition.Spec)
@@ -58,8 +59,8 @@ func (r *DamiDefinitionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// If DeletionTimestamp is not zero, then the object is being deleted.
 	if !damiDefinition.ObjectMeta.DeletionTimestamp.IsZero() {
 		l.Info("object is marked as deleted")
-		// since finalizer exists, delete dami related dependencies here.
 		if controllerutil.ContainsFinalizer(&damiDefinition, damiDefinitionFinalizer) {
+			// since finalizer exists, delete dami related dependencies here.
 			// delete dami related external sources here.
 
 			// remove finalizer here
@@ -69,16 +70,16 @@ func (r *DamiDefinitionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 				return ctrl.Result{}, err
 			}
 		}
+
+		// At this point, there are no finalizers existing. So, there is nothing to do.
+		return ctrl.Result{}, nil
 	}
 
-	// The object is not being deleted, so if it does not have our finalizer,
-	// then lets add the finalizer and update the object. This is equivalent
-	// registering our finalizer.
 	if !controllerutil.ContainsFinalizer(&damiDefinition, damiDefinitionFinalizer) {
 		l.Info("object does not contain a finalizer, adding it.")
 		controllerutil.AddFinalizer(&damiDefinition, damiDefinitionFinalizer)
 		if err := r.Update(ctx, &damiDefinition); err != nil {
-			l.Error(err, "failed to add finalizer")
+			l.Error(err, "failed to update damidefinition after adding finalizer")
 			return ctrl.Result{}, err
 		}
 	}
