@@ -18,8 +18,8 @@ package main
 
 import (
 	"flag"
+	"github.com/buraksekili/dami-operator/pkg"
 	"os"
-
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -63,6 +63,9 @@ func main() {
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
+	e := &pkg.Env{}
+	e.ParseEnv()
+
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
@@ -81,6 +84,7 @@ func main() {
 	if err = (&controllers.DamiDefinitionReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
+		Env:    *e,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "DamiDefinition")
 		os.Exit(1)

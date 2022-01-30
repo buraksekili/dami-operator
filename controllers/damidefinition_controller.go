@@ -17,9 +17,13 @@ limitations under the License.
 package controllers
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/buraksekili/dami-operator/pkg"
 	"k8s.io/apimachinery/pkg/runtime"
+	"net/http"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -32,6 +36,7 @@ import (
 type DamiDefinitionReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
+	Env    pkg.Env
 }
 
 //+kubebuilder:rbac:groups=damigroup.dami.io,resources=damidefinitions,verbs=get;list;watch;create;update;patch;delete
@@ -55,6 +60,13 @@ func (r *DamiDefinitionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 	l.Info("got dami definition", "meta", damiDefinition.Name, "spec", damiDefinition.Spec)
+
+	// TODO: add 'Updated' field to damidefinition. If Updated field is set, then do not make
+	// new update request to dami API.
+	endpoint := fmt.Sprintf("%s/update", r.Env.DamiURL)
+	if err := makePutRequest(endpoint, &damiDefinition.Spec); err != nil {
+		l.Error(err, "failed to make request to the server", "url", endpoint)
+	}
 
 	// If DeletionTimestamp is not zero, then the object is being deleted.
 	if !damiDefinition.ObjectMeta.DeletionTimestamp.IsZero() {
@@ -92,4 +104,23 @@ func (r *DamiDefinitionReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&damigroupv1alpha1.DamiDefinition{}).
 		Complete(r)
+}
+
+func makePutRequest(url string, body *damigroupv1alpha1.DamiDefinitionSpec) error {
+	hc := &http.Client{}
+	b, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(b))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json; charset=utf-8")
+	if _, err := hc.Do(req); err != nil {
+		return err
+	}
+	return nil
 }
