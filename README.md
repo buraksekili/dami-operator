@@ -13,7 +13,8 @@ Before running the operator, please install CRDs as follows:
 $ make install
 ```
 
-Once you installed CRDs, please make sure that you have up and running [dami] instance. Then, just run:
+Once you installed CRDs, please make sure that you have up and running [dami] instance. 
+Then, execute the following command to run dami-operator:
 
 ```bash
 $ make run ENABLE_WEBHOOKS=false
@@ -21,7 +22,7 @@ $ make run ENABLE_WEBHOOKS=false
 
 ## DamiDefinition CRD
 
-You can find one example DamiDefinition under [samplk delee](./config/samples/damidefinition.yaml) folder.
+You can find an example of DamiDefinition under the sample [sample](./config/samples/damidefinition.yaml) folder.
 
 ```yaml
 apiVersion: damigroup.dami.io/v1alpha1
