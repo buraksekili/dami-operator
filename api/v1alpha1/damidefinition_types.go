@@ -42,11 +42,12 @@ type DamiDefinitionSpec struct {
 
 // DamiDefinitionStatus defines the observed state of DamiDefinition
 type DamiDefinitionStatus struct {
-	DefinitionID string `json:"definition_id"`
+	Resp string `json:"resp"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:printcolumn:name="Response",type=string,JSONPath=`.spec.resp`
 
 // DamiDefinition is the Schema for the damidefinitions API
 type DamiDefinition struct {

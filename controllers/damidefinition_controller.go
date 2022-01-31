@@ -61,8 +61,6 @@ func (r *DamiDefinitionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}
 	l.Info("got dami definition", "meta", damiDefinition.Name, "spec", damiDefinition.Spec)
 
-	// TODO: add 'Updated' field to damidefinition. If Updated field is set, then do not make
-	// new update request to dami API.
 	endpoint := fmt.Sprintf("%s/update", r.Env.DamiURL)
 	if err := makePutRequest(endpoint, &damiDefinition.Spec); err != nil {
 		l.Error(err, "failed to make request to the server", "url", endpoint)

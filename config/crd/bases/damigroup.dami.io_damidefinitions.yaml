@@ -16,7 +16,11 @@ spec:
     singular: damidefinition
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .spec.resp
+      name: Response
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: DamiDefinition is the Schema for the damidefinitions API
@@ -56,10 +60,10 @@ spec:
           status:
             description: DamiDefinitionStatus defines the observed state of DamiDefinition
             properties:
-              definition_id:
+              resp:
                 type: string
             required:
-            - definition_id
+            - resp
             type: object
         type: object
     served: true
