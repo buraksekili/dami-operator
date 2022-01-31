@@ -55,28 +55,23 @@ func (r *DamiDefinitionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	fmt.Println("-------------\n")
 
 	l.Info("we started reconciling", "namespace", req.NamespacedName)
-	var damiDefinition damigroupv1alpha1.DamiDefinition
-	if err := r.Get(ctx, req.NamespacedName, &damiDefinition); err != nil {
+	damiDefinition := &damigroupv1alpha1.DamiDefinition{}
+	if err := r.Get(ctx, req.NamespacedName, damiDefinition); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	l.Info("got dami definition", "meta", damiDefinition.Name, "spec", damiDefinition.Spec)
-
-	endpoint := fmt.Sprintf("%s/update", r.Env.DamiURL)
-	if err := makePutRequest(endpoint, &damiDefinition.Spec); err != nil {
-		l.Error(err, "failed to make request to the server", "url", endpoint)
-	}
+	l.Info("got dami definition", "meta", damiDefinition.Name, "status", damiDefinition.Status)
 
 	// If DeletionTimestamp is not zero, then the object is being deleted.
 	if !damiDefinition.ObjectMeta.DeletionTimestamp.IsZero() {
 		l.Info("object is marked as deleted")
-		if controllerutil.ContainsFinalizer(&damiDefinition, damiDefinitionFinalizer) {
+		if controllerutil.ContainsFinalizer(damiDefinition, damiDefinitionFinalizer) {
 			// since finalizer exists, delete dami related dependencies here.
 			// delete dami related external sources here.
 
 			// remove finalizer here
 			l.Info("removing finalizer from the object")
-			controllerutil.RemoveFinalizer(&damiDefinition, damiDefinitionFinalizer)
-			if err := r.Update(ctx, &damiDefinition); err != nil {
+			controllerutil.RemoveFinalizer(damiDefinition, damiDefinitionFinalizer)
+			if err := r.Update(ctx, damiDefinition); err != nil {
 				return ctrl.Result{}, err
 			}
 		}
@@ -85,11 +80,26 @@ func (r *DamiDefinitionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return ctrl.Result{}, nil
 	}
 
-	if !controllerutil.ContainsFinalizer(&damiDefinition, damiDefinitionFinalizer) {
+	if !controllerutil.ContainsFinalizer(damiDefinition, damiDefinitionFinalizer) {
 		l.Info("object does not contain a finalizer, adding it.")
-		controllerutil.AddFinalizer(&damiDefinition, damiDefinitionFinalizer)
-		if err := r.Update(ctx, &damiDefinition); err != nil {
+		controllerutil.AddFinalizer(damiDefinition, damiDefinitionFinalizer)
+		if err := r.Update(ctx, damiDefinition); err != nil {
 			l.Error(err, "failed to update damidefinition after adding finalizer")
+			return ctrl.Result{}, err
+		}
+	}
+
+	if damiDefinition.Status.Resp != damiDefinition.Spec.Resp {
+		// make put request to dami server's update endpoint to update dami's configuration.
+		endpoint := fmt.Sprintf("%s/update", r.Env.DamiURL)
+		if err := makePutRequest(endpoint, &damiDefinition.Spec); err != nil {
+			l.Error(err, "failed to make request to the server", "url", endpoint)
+		}
+
+		// update Status of the DamiDefinition according to desired state's spec.
+		damiDefinition.Status.Resp = damiDefinition.Spec.Resp
+		if err := r.Status().Update(ctx, damiDefinition); err != nil {
+			l.Error(err, "failed to update damidefinition after updating status.")
 			return ctrl.Result{}, err
 		}
 	}
